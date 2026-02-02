@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="20dp">
+
+    <EditText
+        android:id="@+id/etTarea"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="¿Qué hay que hacer?"
+        android:layout_marginBottom="15dp" />
+
+    <Button
+        android:id="@+id/btnAgregar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Agregar Tarea"
+        android:layout_marginBottom="15dp"/>
+
+    <Button
+        android:id="@+id/btnLimpiar"
+        style="@style/Widget.Material3.Button.TextButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Limpiar Todo"
+        android:textColor="#FF0000"
+        android:layout_marginBottom="20dp"/>
+
+    <TextView
+        android:id="@+id/tvLista"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:hint="Tu lista aparecerá aquí..."
+        android:textSize="16sp" />
+
+</LinearLayout>
