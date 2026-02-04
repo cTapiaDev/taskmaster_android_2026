@@ -13,7 +13,7 @@ class TareaRepository {
         }
     } */
 
-    suspend fun agregarTareaConRetraso(descripcion: String): Boolean {
+    /* suspend fun agregarTareaConRetraso(descripcion: String): Boolean {
         return withContext(Dispatchers.IO) {
             delay(3000)
             if (descripcion.isNotBlank()) {
@@ -23,11 +23,11 @@ class TareaRepository {
                 false
             }
         }
-    }
+    } */
 
     suspend fun agregarTareaEnNube(descripcion: String): Result<Boolean> {
         return withContext(Dispatchers.IO) {
-            val delayAleatorio = (2000..4000).random().toLong()
+            val delayAleatorio = (2000..7000).random().toLong()
             delay(delayAleatorio)
 
             val errorAleatorio = (1..5).random()

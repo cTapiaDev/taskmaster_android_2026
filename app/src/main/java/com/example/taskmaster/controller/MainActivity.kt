@@ -4,20 +4,17 @@ import android.content.res.ColorStateList
 import android.graphics.Color
 import android.os.Bundle
 import android.view.View
-import android.widget.Toast
-import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
-import com.example.taskmaster.R
 import com.example.taskmaster.databinding.ActivityMainBinding
 import com.example.taskmaster.model.TareaRepository
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeout
 
 class MainActivity : AppCompatActivity() {
 
@@ -107,7 +104,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun guardarNormal(texto: String) {
-        miJobActual = lifecycleScope.launch {
+        /* miJobActual = lifecycleScope.launch {
             try {
                 habilitarBotones(false)
                 binding.progressBar.visibility = View.VISIBLE
@@ -128,6 +125,30 @@ class MainActivity : AppCompatActivity() {
                 binding.progressBar.visibility = View.GONE
                 habilitarBotones(true)
             }
+        } */
+
+        miJobActual = lifecycleScope.launch {
+            try {
+                actualizarMonitor(1)
+                binding.progressBar.visibility = View.VISIBLE
+                binding.tvEstado.text = "Intentando subir..."
+
+                withTimeout(5000) {
+                    repositorio.agregarTareaEnNube(texto)
+                }
+
+                binding.tvEstado.text = "¡Subido a tiempo!"
+                actualizarInterfaz()
+            } catch (e: TimeoutCancellationException) {
+                binding.tvEstado.text = "El servidor es muy lento..."
+                binding.tvEstado.setTextColor(Color.parseColor("#E65100"))
+                throw e
+            } catch (e: Exception) {
+                binding.tvEstado.text = "Error: ${e.message}"
+            } finally {
+                actualizarMonitor(-1)
+                binding.progressBar.visibility = View.GONE
+            }
         }
     }
 
@@ -138,7 +159,7 @@ class MainActivity : AppCompatActivity() {
             binding.progressBar.visibility = View.VISIBLE
             binding.tvEstado.setTextColor(Color.BLUE)
 
-            binding.tvEstado.text = "MODO TURBO: Enviando 3 tareas al mismo tiempo."
+            binding.tvEstado.text = "MODO TURBO: Enviando 10 tareas al mismo tiempo."
 
             try {
                 /* val deferred1 = async { repositorio.agregarTareaEnNube("Tarea Turbo A") }
