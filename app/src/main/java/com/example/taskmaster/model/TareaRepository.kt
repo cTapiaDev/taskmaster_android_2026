@@ -27,12 +27,15 @@ class TareaRepository {
 
     suspend fun agregarTareaEnNube(descripcion: String): Result<Boolean> {
         return withContext(Dispatchers.IO) {
-            delay(3000)
+            val delayAleatorio = (2000..4000).random().toLong()
+            delay(delayAleatorio)
 
-            val errorAleatorio = (1..3).random()
+            val errorAleatorio = (1..5).random()
 
             if (errorAleatorio == 1) {
-                Result.failure(Exception("Error de conexión: El servidor no responde"))
+                Result.failure(Exception("Servidor ocupado"))
+            } else if (descripcion.isBlank()) {
+                Result.failure(Exception("Texto vacío"))
             } else {
                 listaTareas.add(Tarea(descripcion))
                 Result.success(true)
@@ -40,7 +43,7 @@ class TareaRepository {
         }
     }
 
-    fun obtenerTodas(): List<Tarea> = listaTareas
+    fun obtenerTodas(): List<Tarea> = listaTareas.toList()
 
     fun limpiarTodo() {
         listaTareas.clear()
