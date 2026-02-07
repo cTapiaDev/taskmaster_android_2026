@@ -128,7 +128,7 @@
         </com.google.android.material.card.MaterialCardView>
 
 
-        <com.google.android.material.card.MaterialCardView
+        <!-- <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             app:cardCornerRadius="12dp"
@@ -158,7 +158,20 @@
 
             </LinearLayout>
 
-        </com.google.android.material.card.MaterialCardView>
+        </com.google.android.material.card.MaterialCardView> -->
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvTareas"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:scrollbars="vertical"
+            tools:listitem="@layout/item_task"/>
+
+        <androidx.fragment.app.FragmentContainerView
+            android:id="@+id/fragmentContainer"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
 
         <Button
             android:id="@+id/btnLimpiar"

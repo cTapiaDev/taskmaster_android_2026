@@ -4,8 +4,13 @@ import android.content.res.ColorStateList
 import android.graphics.Color
 import android.os.Bundle
 import android.view.View
+import android.widget.Toast
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.taskmaster.R
+import com.example.taskmaster.controller.viewmodel.TaskViewModel
 import com.example.taskmaster.databinding.ActivityMainBinding
 import com.example.taskmaster.model.TareaRepository
 import kotlinx.coroutines.CancellationException
@@ -19,19 +24,28 @@ import kotlinx.coroutines.withTimeout
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
-    private val repositorio = TareaRepository()
+    private lateinit var taskAdapter: TaskAdapter
+    // private val repositorio = TareaRepository()
 
-    private var miJobActual: Job? = null
+    // private var miJobActual: Job? = null
 
-    private var corrutinasActivas = 0
+    // private var corrutinasActivas = 0
+
+    private val viewModel: TaskViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        setupRecyclerView()
+        setupObservers()
+        setupListeners()
+
+        viewModel.obtenerTareas()
+
         // setupListener()
-        binding.btnAgregar.setOnClickListener {
+        /* binding.btnAgregar.setOnClickListener {
             val texto = binding.etTarea.text.toString();
             // guardarTareaProcesando(texto)
             guardarNormal(texto)
@@ -55,6 +69,8 @@ class MainActivity : AppCompatActivity() {
             repositorio.limpiarTodo()
             actualizarInterfaz()
         }
+
+         */
     }
 
     /* private fun setupListener() {
@@ -93,7 +109,7 @@ class MainActivity : AppCompatActivity() {
         }
     } */
 
-    private fun actualizarMonitor(delta: Int) {
+    /* private fun actualizarMonitor(delta: Int) {
         corrutinasActivas += delta
         binding.tvActive.text = "Hilos activos: $corrutinasActivas"
         binding.stressBar.progress = corrutinasActivas
@@ -101,7 +117,7 @@ class MainActivity : AppCompatActivity() {
         val color = if (corrutinasActivas > 5) Color.RED else Color.parseColor("#00FF00")
         binding.stressBar.progressTintList = ColorStateList.valueOf(color)
         binding.tvActive.setTextColor(color)
-    }
+    } */
 
     private fun guardarNormal(texto: String) {
         /* miJobActual = lifecycleScope.launch {
@@ -127,7 +143,7 @@ class MainActivity : AppCompatActivity() {
             }
         } */
 
-        miJobActual = lifecycleScope.launch {
+        /* miJobActual = lifecycleScope.launch {
             try {
                 actualizarMonitor(1)
                 binding.progressBar.visibility = View.VISIBLE
@@ -149,11 +165,11 @@ class MainActivity : AppCompatActivity() {
                 actualizarMonitor(-1)
                 binding.progressBar.visibility = View.GONE
             }
-        }
+        } */
     }
 
     private fun ejecutarModoTurbo() {
-        miJobActual = lifecycleScope.launch {
+        /* miJobActual = lifecycleScope.launch {
             val tiempoInicio = System.currentTimeMillis()
             habilitarBotones(false)
             binding.progressBar.visibility = View.VISIBLE
@@ -192,14 +208,14 @@ class MainActivity : AppCompatActivity() {
                 binding.progressBar.visibility = View.GONE
                 habilitarBotones(true)
             }
-        }
+        } */
     }
 
-    private fun habilitarBotones(estado: Boolean) {
+    /* private fun habilitarBotones(estado: Boolean) {
         binding.btnAgregar.isEnabled = estado
         binding.btnTurbo.isEnabled = estado
         binding.etTarea.isEnabled = estado
-    }
+    } */
 
     /* private fun guardarConManejoDeErrores(texto: String) {
         lifecycleScope.launch {
@@ -221,9 +237,68 @@ class MainActivity : AppCompatActivity() {
         }
     } */
 
-    private fun actualizarInterfaz() {
-        val tareas = repositorio.obtenerTodas()
-        val listaFormateada = tareas.joinToString(separator = "\n") { "- ${it.descripcion}" }
-        binding.tvLista.text = listaFormateada.ifEmpty { "Lista vacía" }
+    private fun mostrarDetalleTarea(nombreTarea: String) {
+        val fragment = TaskDetailFragment.newInstance(nombreTarea)
+
+        supportFragmentManager.beginTransaction()
+            .setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out)
+            .replace(R.id.fragmentContainer, fragment)
+            .addToBackStack(null)
+            .commit()
     }
+
+    private fun setupRecyclerView() {
+        taskAdapter = TaskAdapter(
+            // tasks = repositorio.obtenerTodas(),
+            tasks = emptyList(),
+            onTaskClick = { tarea -> mostrarDetalleTarea(tarea.descripcion) },
+            onDeleteClick = { posicion ->
+                Toast.makeText(this, "Eliminar tarea posición $posicion", Toast.LENGTH_SHORT).show()
+            }
+        )
+
+        binding.rvTareas.apply {
+            layoutManager = LinearLayoutManager(this@MainActivity)
+            adapter = taskAdapter
+        }
+    }
+
+    private fun setupObservers() {
+        viewModel.tareas.observe(this) { lista ->
+            taskAdapter.updateData(lista)
+        }
+
+        viewModel.estaCargando.observe(this) { cargando ->
+            binding.progressBar.visibility = if (cargando) View.VISIBLE else View.GONE
+            binding.btnAgregar.isEnabled = !cargando
+            binding.btnTurbo.isEnabled = !cargando
+        }
+
+        viewModel.mensajeEstado.observe(this) { mensaje ->
+            binding.tvEstado.text = mensaje
+        }
+    }
+
+    private fun setupListeners() {
+        binding.btnAgregar.setOnClickListener {
+            val texto = binding.etTarea.text.toString()
+            viewModel.agregarTarea(texto)
+            binding.etTarea.text.clear()
+        }
+
+        binding.btnTurbo.setOnClickListener {
+            viewModel.ejecutarModoTurbo()
+        }
+
+        binding.btnLimpiar.setOnClickListener {
+            viewModel.limpiarTareas()
+        }
+    }
+
+    /* private fun actualizarInterfaz() {
+        /* val tareas = repositorio.obtenerTodas()
+        val listaFormateada = tareas.joinToString(separator = "\n") { "- ${it.descripcion}" }
+        binding.tvLista.text = listaFormateada.ifEmpty { "Lista vacía" } */
+        taskAdapter.updateData(repositorio.obtenerTodas())
+    } */
 }
