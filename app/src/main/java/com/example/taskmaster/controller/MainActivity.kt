@@ -277,6 +277,20 @@ class MainActivity : AppCompatActivity() {
         viewModel.mensajeEstado.observe(this) { mensaje ->
             binding.tvEstado.text = mensaje
         }
+
+        viewModel.stressLevel.observe(this) { nivel ->
+            binding.tvActive.text = "Hilos activos: $nivel"
+            binding.stressBar.progress = nivel
+
+            val color = if (nivel > 5) {
+                Color.RED
+            } else {
+                Color.GREEN
+            }
+
+            binding.stressBar.progressTintList = ColorStateList.valueOf(color)
+            binding.tvActive.setTextColor(color)
+        }
     }
 
     private fun setupListeners() {

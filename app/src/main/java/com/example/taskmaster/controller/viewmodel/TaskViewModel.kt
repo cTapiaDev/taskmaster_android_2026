@@ -10,9 +10,12 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
 
-class TaskViewModel : ViewModel() {
+class TaskViewModel(
+    private val repositorio: TareaRepository = TareaRepository()
+) : ViewModel() {
 
-    private val repositorio = TareaRepository()
+    private val _stressLevel = MutableLiveData<Int>(0)
+    val stressLevel: LiveData<Int> get() = _stressLevel
 
     private val _tareas = MutableLiveData<List<Tarea>>()
     val tareas: LiveData<List<Tarea>> get() = _tareas
@@ -23,12 +26,27 @@ class TaskViewModel : ViewModel() {
     private val _mensajeEstado = MutableLiveData<String>()
     val mensajeEstado: LiveData<String> get() = _mensajeEstado
 
+    private fun actualizarStress(delta: Int) {
+        val valorActual = _stressLevel.value ?: 0
+        _stressLevel.value = valorActual + delta
+    }
+
     fun obtenerTareas() {
         _tareas.value = repositorio.obtenerTodas()
     }
 
     fun agregarTarea(texto: String) {
+        if (texto.isBlank()) {
+            _mensajeEstado.value = "Error: vacío"
+            return
+        }
+        if (texto.contains("fallo")) {
+            _mensajeEstado.value = "Error: fallo"
+            return
+        }
+
         viewModelScope.launch {
+            actualizarStress(1)
             _estaCargando.value = true
             _mensajeEstado.value = "Subiendo a la nube..."
 
@@ -41,6 +59,7 @@ class TaskViewModel : ViewModel() {
                 _mensajeEstado.value = "Error: ${it.message}"
             }
             _estaCargando.value = false
+            actualizarStress(-1)
         }
     }
 
@@ -49,13 +68,23 @@ class TaskViewModel : ViewModel() {
             _estaCargando.value = true
             _mensajeEstado.value = "MODO TURBO ACTIVO..."
 
-            val deferreds = listOf(
+            /* val deferreds = listOf(
                 async { repositorio.agregarTareaEnNube("Tarea Turbo A") },
                 async { repositorio.agregarTareaEnNube("Tarea Turbo B") },
                 async { repositorio.agregarTareaEnNube("Tarea Turbo C") }
             )
-            deferreds.awaitAll()
+            deferreds.awaitAll() */
 
+            val tareasMasivas = List(10) { indice ->
+                async {
+                    actualizarStress(1)
+                    val res = repositorio.agregarTareaEnNube("Tarea Turbo #$indice")
+                    actualizarStress(-1)
+                    res
+                }
+            }
+
+            tareasMasivas.awaitAll()
             _tareas.value = repositorio.obtenerTodas()
             _estaCargando.value = false
             _mensajeEstado.value = "Turbo finalizado con éxito"

@@ -4,7 +4,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 
-class TareaRepository {
+open class TareaRepository {
     private val listaTareas = mutableListOf<Tarea>();
 
     /* fun agregarTarea(descripcion: String) {
@@ -25,7 +25,7 @@ class TareaRepository {
         }
     } */
 
-    suspend fun agregarTareaEnNube(descripcion: String): Result<Boolean> {
+    open suspend fun agregarTareaEnNube(descripcion: String): Result<Boolean> {
         return withContext(Dispatchers.IO) {
             val delayAleatorio = (2000..7000).random().toLong()
             delay(delayAleatorio)
@@ -43,7 +43,7 @@ class TareaRepository {
         }
     }
 
-    fun obtenerTodas(): List<Tarea> = listaTareas.toList()
+    open fun obtenerTodas(): List<Tarea> = listaTareas.toList()
 
     fun limpiarTodo() {
         listaTareas.clear()
